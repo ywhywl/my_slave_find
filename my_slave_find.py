@@ -6,6 +6,7 @@
 
 import pymysql
 import argparse
+
 db_user='ywl'
 db_password='nihao123'
 print_dict={
@@ -21,11 +22,9 @@ print_dict={
 
 global master_uuid
 master_uuid=''
-global co_master_uuids
 co_master_uuids = []
-global hosts_info
 hosts_info={}
-
+db_slave_port_range=[3000,10000]
 
 def myconnect(host='',port=3306,user=db_user,password=db_password,connect_timeout=1):
     try:
@@ -94,10 +93,16 @@ class GetHostInfo(object):
         if not show_slave_info:
             return
         self.cursor.execute(self.get_slave_hosts_sql)
+        self.cursor.close()
         slave_hosts = self.cursor.fetchall()
+        self.cursor.close()
         for slave_host in slave_hosts:
             for slave in show_slave_info:
-                cursor=myconnect(host=slave_host['host'],port=slave['Port'])
+                port = slave['Port']
+                if port <db_slave_port_range[0] or port >db_slave_port_range[1]:
+                    continue
+                cursor=myconnect(host=slave_host['host'],port=port)
+
                 if not cursor:
                     continue
                 ret=cursor.execute(self.get_server_uuid_sql)
@@ -105,9 +110,11 @@ class GetHostInfo(object):
                     continue
                 get_server_uuid = cursor.fetchall()[0]['server_uuid']
                 slave['Host']=slave_host['host']
+
                 if get_server_uuid!=slave['Slave_UUID']:
                     continue
                 self.db_info['slave_host_list'][get_server_uuid] = slave
+                cursor.close()
 
     def get_host_info(self):
         self.cursor=myconnect(host=self.host,port=self.port)
