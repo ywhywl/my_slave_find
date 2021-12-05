@@ -19,8 +19,8 @@ print_dict={
     "SQL_Delay": 'SQL_Delay',
 
 }
-
-global master_uuid
+#
+# global master_uuid
 master_uuid=''
 co_master_uuids = []
 hosts_info={}
@@ -28,8 +28,7 @@ db_slave_port_range=[3000,10000]
 
 def myconnect(host='',port=3306,user=db_user,password=db_password,connect_timeout=1):
     try:
-        conn = pymysql.connect(host=host,port=port,user='ywl',password='nihao123',connect_timeout=1)
-        # self.cursor = self.conn.cursor()
+        conn = pymysql.connect(host=host,port=port,user=user,password=password,connect_timeout=1)
         cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
         return cursor
     except Exception as e:
